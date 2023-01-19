@@ -13,8 +13,21 @@ export class CartService {
                                     //Para que se vea al final en el checkout
   totalPrice: Subject<number> = new BehaviorSubject<number>(0);
   totalQuantity: Subject<number> = new BehaviorSubject<number>(0);
+  
+  // storage: Storage = sessionStorage;
+  storage: Storage = localStorage;
 
-  constructor() { }
+  constructor() {
+      //read data from storage
+      let data = JSON.parse(this.storage.getItem('cartItems')!);
+
+      if(data != null){
+          this.cartItems = data;
+
+          //compute totals based on the data that is read from storage
+          this.computeCartTotals();
+      }
+   }
 
   addToCart(theCartItem: CartItem){
 
@@ -56,19 +69,27 @@ export class CartService {
 
     //log cart data just for debugging prpurses
     this.logCartData(totalPriceValue, totalQuantityValue)
+
+    //persist cart data
+    this.persistCartItems();
   }
 
+
+  persistCartItems(){
+    this.storage.setItem('cartItems', JSON.stringify(this.cartItems));
+  }
+
+
   logCartData(totalPriceValue: number, totalQuantityValue: number) {
-    console.log('Contents of the cart')
-    for(let tempCartItem of this.cartItems){
-      const subTotalPrice = tempCartItem.quantity * tempCartItem.unitPrice;
-      console.log(`name: ${tempCartItem.name}, quantity=${tempCartItem.quantity}, unitPrice=${tempCartItem.unitPrice}, subtotalPrice=${subTotalPrice}`);
-    }
+      console.log('Contents of the cart')
+      for(let tempCartItem of this.cartItems){
+        const subTotalPrice = tempCartItem.quantity * tempCartItem.unitPrice;
+        console.log(`name: ${tempCartItem.name}, quantity=${tempCartItem.quantity}, unitPrice=${tempCartItem.unitPrice}, subtotalPrice=${subTotalPrice}`);
+      }
 
-    console.log(`totalPrice: ${totalPriceValue.toFixed(2)}, totalQuantity: ${totalQuantityValue}`);
-    console.log('-----')
+      console.log(`totalPrice: ${totalPriceValue.toFixed(2)}, totalQuantity: ${totalQuantityValue}`);
+      console.log('-----')
 
-    
   }
 
   decrementQuantity(theCartItem: CartItem) {
